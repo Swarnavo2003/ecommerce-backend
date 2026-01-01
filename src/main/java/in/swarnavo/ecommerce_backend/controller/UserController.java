@@ -1,5 +1,7 @@
 package in.swarnavo.ecommerce_backend.controller;
 
+import in.swarnavo.ecommerce_backend.dto.LoginRequest;
+import in.swarnavo.ecommerce_backend.dto.LoginResponse;
 import in.swarnavo.ecommerce_backend.dto.RegisterRequest;
 import in.swarnavo.ecommerce_backend.dto.UserResponse;
 import in.swarnavo.ecommerce_backend.service.UserService;
@@ -24,4 +26,12 @@ public class UserController {
         return new ResponseEntity<>(userService.register(request), HttpStatus.CREATED);
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse loginResponse = userService.login(request);
+        if (loginResponse == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        return new ResponseEntity<>(loginResponse, HttpStatus.OK);
+    }
 }
