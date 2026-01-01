@@ -1,9 +1,9 @@
 package in.swarnavo.ecommerce_backend.service;
 
-import in.swarnavo.ecommerce_backend.dto.LoginRequest;
+import in.swarnavo.ecommerce_backend.dto.LoginDTO;
 import in.swarnavo.ecommerce_backend.dto.LoginResponse;
-import in.swarnavo.ecommerce_backend.dto.RegisterRequest;
-import in.swarnavo.ecommerce_backend.dto.UserResponse;
+import in.swarnavo.ecommerce_backend.dto.RegisterDTO;
+import in.swarnavo.ecommerce_backend.dto.UserDTO;
 import in.swarnavo.ecommerce_backend.model.User;
 import in.swarnavo.ecommerce_backend.model.enums.UserRole;
 import in.swarnavo.ecommerce_backend.repository.UserRepository;
@@ -27,7 +27,7 @@ public class UserServiceImpl implements UserService {
     private final ModelMapper modelMapper;
 
     @Override
-    public UserResponse register(RegisterRequest request) {
+    public UserDTO register(RegisterDTO request) {
         User user = modelMapper.map(request, User.class);
 
         user.setRole(request.getRole() == null ? UserRole.USER : UserRole.valueOf(request.getRole()));
@@ -36,11 +36,11 @@ public class UserServiceImpl implements UserService {
 
         User savedUser = userRepository.save(user);
 
-        return modelMapper.map(savedUser, UserResponse.class);
+        return modelMapper.map(savedUser, UserDTO.class);
     }
 
     @Override
-    public LoginResponse login(LoginRequest request) {
+    public LoginResponse login(LoginDTO request) {
         try {
             User user = userRepository.findByEmail(request.getEmail());
 
@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserService {
 
             String token = jwtUtils.generateToken(String.valueOf(user.getUserId()), user.getRole().name());
 
-            return new LoginResponse(token, modelMapper.map(user, UserResponse.class));
+            return new LoginResponse(token, modelMapper.map(user, UserDTO.class));
         } catch (AuthenticationException e) {
             e.printStackTrace();
             throw new RuntimeException("Authentication Error");

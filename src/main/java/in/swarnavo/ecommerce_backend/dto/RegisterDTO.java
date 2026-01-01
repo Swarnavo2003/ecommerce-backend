@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RegisterRequest {
+public class RegisterDTO {
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid Email")
     private String email;

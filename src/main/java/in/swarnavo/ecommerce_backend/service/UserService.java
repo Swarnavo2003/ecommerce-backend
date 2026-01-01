@@ -1,13 +1,13 @@
 package in.swarnavo.ecommerce_backend.service;
 
-import in.swarnavo.ecommerce_backend.dto.LoginRequest;
+import in.swarnavo.ecommerce_backend.dto.LoginDTO;
 import in.swarnavo.ecommerce_backend.dto.LoginResponse;
-import in.swarnavo.ecommerce_backend.dto.RegisterRequest;
-import in.swarnavo.ecommerce_backend.dto.UserResponse;
+import in.swarnavo.ecommerce_backend.dto.RegisterDTO;
+import in.swarnavo.ecommerce_backend.dto.UserDTO;
 import jakarta.validation.Valid;
 
 public interface UserService {
-    UserResponse register(@Valid RegisterRequest request);
+    UserDTO register(@Valid RegisterDTO request);
 
-    LoginResponse login(@Valid LoginRequest request);
+    LoginResponse login(@Valid LoginDTO request);
 }
