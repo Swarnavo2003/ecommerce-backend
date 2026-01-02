@@ -1,6 +1,7 @@
 package in.swarnavo.ecommerce_backend.service;
 
 import in.swarnavo.ecommerce_backend.dto.ProductDTO;
+import in.swarnavo.ecommerce_backend.dto.ProductResponse;
 import in.swarnavo.ecommerce_backend.exception.DuplicateResourceException;
 import in.swarnavo.ecommerce_backend.exception.ResourceNotFoundException;
 import in.swarnavo.ecommerce_backend.model.Category;
@@ -11,6 +12,10 @@ import in.swarnavo.ecommerce_backend.repository.ProductRepository;
 import in.swarnavo.ecommerce_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -60,5 +65,30 @@ public class ProductServiceImpl implements ProductService{
         } else {
             throw new DuplicateResourceException("Product already exists");
         }
+    }
+
+    @Override
+    public ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
+        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        Page<Product> pageProducts = productRepository.findAll(pageDetails);
+
+        List<Product> products = pageProducts.getContent();
+
+        List<ProductDTO> productDTOS = products.stream()
+                .map(product -> modelMapper.map(product, ProductDTO.class))
+                .toList();
+
+        ProductResponse productResponse = new ProductResponse();
+        productResponse.setContent(productDTOS);
+        productResponse.setPageNumber(pageProducts.getNumber());
+        productResponse.setPageSize(pageProducts.getSize());
+        productResponse.setTotalElements(pageProducts.getTotalElements());
+        productResponse.setTotalPages(pageProducts.getTotalPages());
+        productResponse.setLastPage(pageProducts.isLast());
+        return productResponse;
     }
 }
