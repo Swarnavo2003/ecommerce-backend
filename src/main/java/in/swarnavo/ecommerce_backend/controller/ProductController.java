@@ -66,7 +66,8 @@ public class ProductController {
             @Valid @RequestBody ProductDTO productDTO,
             @PathVariable Long productId
     ) {
-        return null;
+        ProductDTO updatedProduct = productService.updateProduct(productId, productDTO);
+        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
     }
 
     @DeleteMapping("/seller/products/{productId}")

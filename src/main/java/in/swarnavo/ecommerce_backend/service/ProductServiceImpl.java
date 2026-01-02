@@ -151,4 +151,31 @@ public class ProductServiceImpl implements ProductService{
         productResponse.setLastPage(pageProducts.isLast());
         return productResponse;
     }
+
+    @Override
+    public ProductDTO updateProduct(Long productId, ProductDTO productDTO) {
+        Product product = modelMapper.map(productDTO, Product.class);
+
+        Product existingProduct = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with product Id : " + productId));
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String sellerId = authentication.getPrincipal().toString();
+        if(!sellerId.equals(existingProduct.getUser().getUserId().toString())) {
+            throw new BaseException("You cannot update this product");
+        }
+
+        existingProduct.setProductName(product.getProductName());
+        existingProduct.setDescription(product.getDescription());
+        existingProduct.setImage(product.getImage());
+        existingProduct.setQuantity(product.getQuantity());
+        existingProduct.setPrice(product.getPrice());
+        existingProduct.setDiscount(product.getDiscount());
+        double specialPrice = product.getPrice() -
+                ((product.getDiscount() * 0.01) * product.getPrice());
+        existingProduct.setSpecialPrice(specialPrice);
+
+        Product savedProduct = productRepository.save(existingProduct);
+        return modelMapper.map(savedProduct, ProductDTO.class);
+    }
 }
