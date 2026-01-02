@@ -43,4 +43,11 @@ public class CategoryController {
         CategoryDTO deleteCategory = categoryService.deleteCategory(categoryId);
         return new ResponseEntity<>(deleteCategory, HttpStatus.OK);
     }
+
+    @PutMapping("/admin/categories/{categoryId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long categoryId, @Valid @RequestBody CategoryDTO categoryDTO) {
+        CategoryDTO updatedCategory = categoryService.updateCategory(categoryId, categoryDTO);
+        return new ResponseEntity<>(updatedCategory, HttpStatus.OK);
+    }
 }
