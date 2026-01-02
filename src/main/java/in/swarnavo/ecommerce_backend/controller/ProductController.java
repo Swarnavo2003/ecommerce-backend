@@ -74,6 +74,7 @@ public class ProductController {
     public ResponseEntity<ProductDTO> deletedProduct(
             @PathVariable Long productId
     ) {
-        return null;
+        ProductDTO deletedProduct = productService.deleteProduct(productId);
+        return new ResponseEntity<>(deletedProduct, HttpStatus.OK);
     }
 }
