@@ -71,4 +71,12 @@ public class CategoryServiceImpl implements CategoryService {
         categoryResponse.setLastPage(categoryPage.isLast());
         return categoryResponse;
     }
+
+    @Override
+    public CategoryDTO deleteCategory(Long categoryId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category with id " + categoryId +" not found"));
+        categoryRepository.delete(category);
+        return modelMapper.map(category, CategoryDTO.class);
+    }
 }

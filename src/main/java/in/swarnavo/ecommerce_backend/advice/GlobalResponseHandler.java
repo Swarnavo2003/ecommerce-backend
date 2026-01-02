@@ -1,5 +1,6 @@
 package in.swarnavo.ecommerce_backend.advice;
 
+import in.swarnavo.ecommerce_backend.exception.ErrorResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
@@ -42,7 +43,7 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
                 .stream()
                 .anyMatch(route -> request.getURI().getPath().contains(route));
 
-        if(body instanceof ApiResponse<?> || isAllowed) {
+        if(body instanceof ApiResponse<?> || body instanceof ErrorResponse || isAllowed) {
             return body;
         }
 
