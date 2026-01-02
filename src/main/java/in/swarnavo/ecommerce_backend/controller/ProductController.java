@@ -3,8 +3,10 @@ package in.swarnavo.ecommerce_backend.controller;
 import in.swarnavo.ecommerce_backend.config.AppConstants;
 import in.swarnavo.ecommerce_backend.dto.ProductDTO;
 import in.swarnavo.ecommerce_backend.dto.ProductResponse;
+import in.swarnavo.ecommerce_backend.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,12 +15,15 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ProductController {
 
+    private final ProductService productService;
+
     @PostMapping("/seller/categories/{categoryId}/product")
     public ResponseEntity<ProductDTO> addProduct(
             @Valid @RequestBody ProductDTO productDTO,
             @PathVariable Long categoryId
     ) {
-        return null;
+        ProductDTO product = productService.addProduct(categoryId, productDTO);
+        return new ResponseEntity<>(product, HttpStatus.CREATED);
     }
 
     @GetMapping("/public/products")
