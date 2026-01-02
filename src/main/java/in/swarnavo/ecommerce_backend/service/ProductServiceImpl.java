@@ -2,6 +2,7 @@ package in.swarnavo.ecommerce_backend.service;
 
 import in.swarnavo.ecommerce_backend.dto.ProductDTO;
 import in.swarnavo.ecommerce_backend.dto.ProductResponse;
+import in.swarnavo.ecommerce_backend.exception.BaseException;
 import in.swarnavo.ecommerce_backend.exception.DuplicateResourceException;
 import in.swarnavo.ecommerce_backend.exception.ResourceNotFoundException;
 import in.swarnavo.ecommerce_backend.model.Category;
@@ -77,6 +78,37 @@ public class ProductServiceImpl implements ProductService{
         Page<Product> pageProducts = productRepository.findAll(pageDetails);
 
         List<Product> products = pageProducts.getContent();
+
+        List<ProductDTO> productDTOS = products.stream()
+                .map(product -> modelMapper.map(product, ProductDTO.class))
+                .toList();
+
+        ProductResponse productResponse = new ProductResponse();
+        productResponse.setContent(productDTOS);
+        productResponse.setPageNumber(pageProducts.getNumber());
+        productResponse.setPageSize(pageProducts.getSize());
+        productResponse.setTotalElements(pageProducts.getTotalElements());
+        productResponse.setTotalPages(pageProducts.getTotalPages());
+        productResponse.setLastPage(pageProducts.isLast());
+        return productResponse;
+    }
+
+    @Override
+    public ProductResponse searchByCategory(Long categoryId, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with category Id : " + categoryId));
+
+        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        Page<Product> pageProducts = productRepository.findByCategoryOrderByPriceAsc(category, pageDetails);
+
+        List<Product> products = pageProducts.getContent();
+        if(products.isEmpty()) {
+            throw new ResourceNotFoundException("No Products with category : " + category.getCategoryName());
+        }
 
         List<ProductDTO> productDTOS = products.stream()
                 .map(product -> modelMapper.map(product, ProductDTO.class))
