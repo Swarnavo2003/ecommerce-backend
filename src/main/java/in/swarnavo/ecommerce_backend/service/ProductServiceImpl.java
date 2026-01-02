@@ -187,4 +187,17 @@ public class ProductServiceImpl implements ProductService{
         productRepository.delete(product);
         return modelMapper.map(product, ProductDTO.class);
     }
+
+    @Override
+    public List<ProductDTO> getSellerProducts() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String sellerId = authentication.getPrincipal().toString();
+
+        List<Product> products = productRepository.findByUserId(Long.valueOf(sellerId));
+
+        List<ProductDTO> productDTOS = products.stream()
+                .map(product -> modelMapper.map(product, ProductDTO.class))
+                .toList();
+        return productDTOS;
+    }
 }

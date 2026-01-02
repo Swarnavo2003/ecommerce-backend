@@ -4,6 +4,8 @@ import in.swarnavo.ecommerce_backend.dto.ProductDTO;
 import in.swarnavo.ecommerce_backend.dto.ProductResponse;
 import jakarta.validation.Valid;
 
+import java.util.List;
+
 public interface ProductService {
     ProductDTO addProduct(Long categoryId, @Valid ProductDTO productDTO);
 
@@ -16,4 +18,6 @@ public interface ProductService {
     ProductDTO updateProduct(Long productId, @Valid ProductDTO productDTO);
 
     ProductDTO deleteProduct(Long productId);
+
+    List<ProductDTO> getSellerProducts();
 }

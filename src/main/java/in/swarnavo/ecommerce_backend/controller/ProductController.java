@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -76,5 +78,11 @@ public class ProductController {
     ) {
         ProductDTO deletedProduct = productService.deleteProduct(productId);
         return new ResponseEntity<>(deletedProduct, HttpStatus.OK);
+    }
+
+    @GetMapping("/seller/products")
+    public ResponseEntity<List<ProductDTO>> getSellerProducts() {
+        List<ProductDTO> productDTOS = productService.getSellerProducts();
+        return new ResponseEntity<>(productDTOS, HttpStatus.OK);
     }
 }
