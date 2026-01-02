@@ -12,6 +12,10 @@ public class ApiResponse<T> {
 
     private T data;
 
+    private int status;
+
+    private String path;
+
     public ApiResponse() {
         this.timestamp = LocalDateTime.now();
     }
