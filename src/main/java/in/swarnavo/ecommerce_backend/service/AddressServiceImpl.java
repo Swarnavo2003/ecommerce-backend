@@ -5,7 +5,9 @@ import in.swarnavo.ecommerce_backend.exception.ResourceNotFoundException;
 import in.swarnavo.ecommerce_backend.model.Address;
 import in.swarnavo.ecommerce_backend.model.User;
 import in.swarnavo.ecommerce_backend.repository.AddressRepository;
+import in.swarnavo.ecommerce_backend.repository.UserRepository;
 import in.swarnavo.ecommerce_backend.util.AuthUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,8 @@ import java.util.List;
 public class AddressServiceImpl implements AddressService {
 
     private final AddressRepository addressRepository;
+
+    private final UserRepository userRepository;
 
     private final AuthUtil authUtil;
 
@@ -61,5 +65,30 @@ public class AddressServiceImpl implements AddressService {
         return addressList.stream()
                 .map(address -> modelMapper.map(address, AddressDTO.class))
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public AddressDTO updateAddress(Long addressId, AddressDTO addressDTO) {
+        Address existingAddress = addressRepository.findById(addressId)
+                .orElseThrow(() -> new ResourceNotFoundException("Address not found with address id : " + addressId));
+
+        existingAddress.setCity(addressDTO.getCity());
+        existingAddress.setPincode(addressDTO.getPincode());
+        existingAddress.setState(addressDTO.getState());
+        existingAddress.setCity(addressDTO.getCity());
+        existingAddress.setCountry(addressDTO.getCountry());
+        existingAddress.setStreet(addressDTO.getStreet());
+        existingAddress.setBuildingName(addressDTO.getBuildingName());
+
+        Address updatedAddress = addressRepository.save(existingAddress);
+
+        User user = existingAddress.getUser();
+
+        user.getAddresses().removeIf(address -> address.getAddressId().equals(addressId));
+        user.getAddresses().add(updatedAddress);
+        userRepository.save(user);
+
+        return modelMapper.map(updatedAddress, AddressDTO.class);
     }
 }
