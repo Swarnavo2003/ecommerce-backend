@@ -18,7 +18,7 @@ public class AddressController {
 
     private final AddressService addressService;
 
-    @PostMapping("/addresses")
+    @PostMapping("/user/addresses")
     public ResponseEntity<AddressDTO> createAddress(@Valid @RequestBody AddressDTO addressDTO) {
         AddressDTO savedAddress = addressService.createAddress(addressDTO);
         return new ResponseEntity<>(savedAddress, HttpStatus.CREATED);
