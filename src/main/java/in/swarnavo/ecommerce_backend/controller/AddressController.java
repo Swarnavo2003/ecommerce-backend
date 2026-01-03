@@ -18,7 +18,8 @@ public class AddressController {
 
     private final AddressService addressService;
 
-    @PostMapping("addresses")
+    @PostMapping("/user/addresses")
+//    @PreAuthorize("hasRole('USER','SELLER','ADMIN')")
     public ResponseEntity<AddressDTO> createAddress(@Valid @RequestBody AddressDTO addressDTO) {
         AddressDTO savedAddress = addressService.createAddress(addressDTO);
         return new ResponseEntity<>(savedAddress, HttpStatus.CREATED);
@@ -36,5 +37,11 @@ public class AddressController {
     public ResponseEntity<AddressDTO> getAddressById(@PathVariable Long addressId) {
         AddressDTO addressDTO = addressService.getAddressById(addressId);
         return ResponseEntity.ok(addressDTO);
+    }
+
+    @GetMapping("/user/addresses")
+    public ResponseEntity<List<AddressDTO>> getUserAddresses() {
+        List<AddressDTO> userAddresses = addressService.getUserAddresses();
+        return ResponseEntity.ok(userAddresses);
     }
 }

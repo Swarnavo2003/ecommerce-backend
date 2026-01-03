@@ -53,4 +53,13 @@ public class AddressServiceImpl implements AddressService {
                 .orElseThrow(() -> new ResourceNotFoundException("Address not found with address id : " + addressId));
         return modelMapper.map(address, AddressDTO.class);
     }
+
+    @Override
+    public List<AddressDTO> getUserAddresses() {
+        User user = authUtil.loggedInUser();
+        List<Address> addressList = user.getAddresses();
+        return addressList.stream()
+                .map(address -> modelMapper.map(address, AddressDTO.class))
+                .toList();
+    }
 }
