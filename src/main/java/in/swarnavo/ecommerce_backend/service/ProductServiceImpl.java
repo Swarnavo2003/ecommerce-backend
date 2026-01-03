@@ -11,6 +11,7 @@ import in.swarnavo.ecommerce_backend.model.User;
 import in.swarnavo.ecommerce_backend.repository.CategoryRepository;
 import in.swarnavo.ecommerce_backend.repository.ProductRepository;
 import in.swarnavo.ecommerce_backend.repository.UserRepository;
+import in.swarnavo.ecommerce_backend.util.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -35,16 +36,15 @@ public class ProductServiceImpl implements ProductService{
 
     private final ModelMapper modelMapper;
 
+    private final AuthUtil authUtil;
+
     @Override
     public ProductDTO addProduct(Long categoryId, ProductDTO productDTO) {
         Product product = modelMapper.map(productDTO, Product.class);
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Categor not found with categoryId " + categoryId));
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String sellerId = authentication.getPrincipal().toString();
-        User user = userRepository.findById(Long.valueOf(sellerId))
-                .orElseThrow(() -> new ResourceNotFoundException("Seller not present with id " + sellerId));
+        User user = authUtil.loggedInUser();
 
         boolean isProductNotPresent = true;
         List<Product> products = category.getProducts();
@@ -159,8 +159,7 @@ public class ProductServiceImpl implements ProductService{
         Product existingProduct = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with product Id : " + productId));
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String sellerId = authentication.getPrincipal().toString();
+        String sellerId = authUtil.loggedInUserId();
         if(!sellerId.equals(existingProduct.getUser().getUserId().toString())) {
             throw new BaseException("You cannot update this product");
         }
@@ -190,8 +189,7 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     public List<ProductDTO> getSellerProducts() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String sellerId = authentication.getPrincipal().toString();
+        String sellerId = authUtil.loggedInUserId();
 
         List<Product> products = productRepository.findByUserId(Long.valueOf(sellerId));
 
