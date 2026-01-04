@@ -126,6 +126,7 @@ public class CartServiceImpl implements CartService{
     }
 
     @Override
+    @Transactional
     public CartDTO updateProductQuantityInCart(Long productId, int quantity) {
         // STEP 1: Get the logged-in user's cart
         String emailId = authUtil.loggedInEmail();
@@ -142,16 +143,12 @@ public class CartServiceImpl implements CartService{
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
 
         // STEP 4: Validate product availability (only for INCREASE)
-        if (quantity > 0) {
-            if (product.getQuantity() == 0) {
-                throw new BaseException(product.getProductName() + " is not available");
-            }
+        if(product.getQuantity() == 0) {
+            throw new BaseException(product.getProductName() + " is not availabke");
+        }
 
-            if (product.getQuantity() < quantity) {
-                throw new BaseException("Please, make an order of the " +
-                        product.getProductName() +
-                        " less than or equal to the quantity " + product.getQuantity());
-            }
+        if(product.getQuantity() < quantity) {
+            throw new BaseException("Please, make an order of the " + product.getProductName() + " less than or equal to the quantity " + product.getQuantity());
         }
 
         // STEP 5: Find the CartItem (the product in THIS specific cart)
@@ -176,13 +173,18 @@ public class CartServiceImpl implements CartService{
             double priceChange = product.getSpecialPrice() * quantity;
 
             cartItem.setProductPrice(product.getSpecialPrice());
-            cartItem.setQuantity(cartItem.getQuantity() + quantity);
+            cartItem.setQuantity(newQuantity);
             cartItem.setDiscount(product.getDiscount());
 
             cart.setTotalPrice(cart.getTotalPrice() + priceChange);
 
-            cartItemRepository.save(cartItem);
+            // cartItemRepository.save(cartItem);
             cartRepository.save(cart);
+        }
+
+        CartItem updatedItem = cartItemRepository.save(cartItem);
+        if(updatedItem.getQuantity() == 0) {
+            cartItemRepository.deleteById(updatedItem.getCartItemId());
         }
 
         // STEP 9: Refresh cart to get updated state
@@ -213,10 +215,10 @@ public class CartServiceImpl implements CartService{
         cart.setTotalPrice(cart.getTotalPrice() - priceToRemove);
 
         // STEP 5: Delete the cart item
-        cartItemRepository.delete(cartItem);
+        cartItemRepository.deleteCartItemByProductIdAndCartId(cartId, productId);
 
         // STEP 6: Save updated cart
-        cartRepository.save(cart);
+        // cartRepository.save(cart);
     }
 
     // Map CartItems to ProductDTOs
