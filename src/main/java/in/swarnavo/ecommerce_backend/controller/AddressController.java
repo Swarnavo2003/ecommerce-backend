@@ -18,8 +18,8 @@ public class AddressController {
 
     private final AddressService addressService;
 
-    @PostMapping("/user/addresses")
-//    @PreAuthorize("hasRole('USER','SELLER','ADMIN')")
+    @PostMapping("/addresses")
+    @PreAuthorize("hasAnyRole('USER','SELLER','ADMIN')")
     public ResponseEntity<AddressDTO> createAddress(@Valid @RequestBody AddressDTO addressDTO) {
         AddressDTO savedAddress = addressService.createAddress(addressDTO);
         return new ResponseEntity<>(savedAddress, HttpStatus.CREATED);
@@ -45,13 +45,15 @@ public class AddressController {
         return ResponseEntity.ok(userAddresses);
     }
 
-    @PutMapping("/user/addresses/{addressId}")
+    @PutMapping("/addresses/{addressId}")
+    @PreAuthorize("hasAnyRole('USER','SELLER','ADMIN')")
     public ResponseEntity<AddressDTO> updateAddress(@PathVariable Long addressId, @RequestBody AddressDTO addressDTO) {
         AddressDTO updatedAddress = addressService.updateAddress(addressId, addressDTO);
         return ResponseEntity.ok(updatedAddress);
     }
 
-    @DeleteMapping("/user/addresses/{addressId}")
+    @DeleteMapping("/addresses/{addressId}")
+    @PreAuthorize("hasAnyRole('USER','SELLER','ADMIN')")
     public ResponseEntity<AddressDTO> deleteAddress(@PathVariable Long addressId) {
         AddressDTO deletedAddress = addressService.deleteAddress(addressId);
         return ResponseEntity.ok(deletedAddress);
