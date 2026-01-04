@@ -40,4 +40,14 @@ public class CartController {
         CartDTO cartDTO = cartService.getUserCart();
         return new ResponseEntity<>(cartDTO, HttpStatus.OK);
     }
+
+    @PutMapping("/carts/products/{productId}/quantity/{operation}")
+    @PreAuthorize("hasAnyRole('USER','SELLER','ADMIN')")
+    public ResponseEntity<CartDTO> updateCartProduct(
+            @PathVariable Long productId,
+            @PathVariable String operation
+    ) {
+        CartDTO cartDTO = cartService.updateProductQuantityInCart(productId, operation.equalsIgnoreCase("delete") ? -1: 1);
+        return new ResponseEntity<>(cartDTO, HttpStatus.OK);
+    }
 }

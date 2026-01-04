@@ -1,7 +1,6 @@
 package in.swarnavo.ecommerce_backend.service;
 
 import in.swarnavo.ecommerce_backend.dto.CartDTO;
-import in.swarnavo.ecommerce_backend.dto.CartItemDTO;
 import in.swarnavo.ecommerce_backend.dto.ProductDTO;
 import in.swarnavo.ecommerce_backend.exception.BaseException;
 import in.swarnavo.ecommerce_backend.exception.DuplicateResourceException;
@@ -19,7 +18,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -127,6 +125,100 @@ public class CartServiceImpl implements CartService{
         return cartDTO;
     }
 
+    @Override
+    public CartDTO updateProductQuantityInCart(Long productId, int quantity) {
+        // STEP 1: Get the logged-in user's cart
+        String emailId = authUtil.loggedInEmail();
+        Cart userCart = cartRepository.findCartByEmail(emailId);
+
+        // STEP 2: Validate cart exists (double-check with findById)
+        Long cartId = userCart.getCartId();
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "cartId", cartId));
+
+        // STEP 3: Find the product in database
+        Product product = productRepository
+                .findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
+
+        // STEP 4: Validate product availability (only for INCREASE)
+        if (quantity > 0) {
+            if (product.getQuantity() == 0) {
+                throw new BaseException(product.getProductName() + " is not available");
+            }
+
+            if (product.getQuantity() < quantity) {
+                throw new BaseException("Please, make an order of the " +
+                        product.getProductName() +
+                        " less than or equal to the quantity " + product.getQuantity());
+            }
+        }
+
+        // STEP 5: Find the CartItem (the product in THIS specific cart)
+        CartItem cartItem = cartItemRepository.findCartItemByProductIdAndCartId(cartId, productId);
+        if (cartItem == null) {
+            throw new BaseException("Product " + product.getProductName() + " not available in the cart");
+        }
+
+        // STEP 6: Calculate the new quantity after update
+        int newQuantity = cartItem.getQuantity() + quantity;
+
+        // STEP 7: Validate new quantity is not negative
+        if (newQuantity < 0) {
+            throw new BaseException("The resulting quantity cannot be negative");
+        }
+
+        // STEP 8: Handle based on new quantity value
+        if (newQuantity == 0) {
+            deleteProductFromCart(cartId, productId);
+        } else {
+
+            double priceChange = product.getSpecialPrice() * quantity;
+
+            cartItem.setProductPrice(product.getSpecialPrice());
+            cartItem.setQuantity(cartItem.getQuantity() + quantity);
+            cartItem.setDiscount(product.getDiscount());
+
+            cart.setTotalPrice(cart.getTotalPrice() + priceChange);
+
+            cartItemRepository.save(cartItem);
+            cartRepository.save(cart);
+        }
+
+        // STEP 9: Refresh cart to get updated state
+        cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "cartId", cartId));
+
+        // STEP 10: Convert to DTO and return
+        return mapCartToDTO(cart);
+    }
+
+
+    @Override
+    public void deleteProductFromCart(Long cartId, Long productId) {
+        // STEP 1: Find the cart
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "cartId", cartId));
+
+        // STEP 2: Find the cart item to delete
+        CartItem cartItem = cartItemRepository.findCartItemByProductIdAndCartId(cartId, productId);
+        if (cartItem == null) {
+            throw new ResourceNotFoundException("Product not found in cart");
+        }
+
+        // STEP 3: Calculate price to subtract from cart total
+        double priceToRemove = cartItem.getProductPrice() * cartItem.getQuantity();
+
+        // STEP 4: Update cart total price
+        cart.setTotalPrice(cart.getTotalPrice() - priceToRemove);
+
+        // STEP 5: Delete the cart item
+        cartItemRepository.delete(cartItem);
+
+        // STEP 6: Save updated cart
+        cartRepository.save(cart);
+    }
+
     // Map CartItems to ProductDTOs
     private CartDTO mapCartToDTO(Cart cart) {
         CartDTO cartDTO = new CartDTO();
@@ -136,6 +228,7 @@ public class CartServiceImpl implements CartService{
         List<ProductDTO> productDTOS = cart.getCartItems().stream()
                 .map(cartItem -> {
                     ProductDTO productDTO = modelMapper.map(cartItem.getProduct(), ProductDTO.class);
+                    productDTO.setQuantity(cartItem.getQuantity());
                     return productDTO;
                 })
                 .toList();
