@@ -33,4 +33,11 @@ public class CartController {
         List<CartDTO> cartDTOs = cartService.getAllCarts();
         return new ResponseEntity<>(cartDTOs, HttpStatus.FOUND);
     }
+
+    @GetMapping("/carts/user/cart")
+    @PreAuthorize("hasAnyRole('USER','SELLER','ADMIN')")
+    public ResponseEntity<CartDTO> getUserCart() {
+        CartDTO cartDTO = cartService.getUserCart();
+        return new ResponseEntity<>(cartDTO, HttpStatus.OK);
+    }
 }
