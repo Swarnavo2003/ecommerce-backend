@@ -1,6 +1,7 @@
 package in.swarnavo.ecommerce_backend.controller;
 
 import in.swarnavo.ecommerce_backend.dto.CartDTO;
+import in.swarnavo.ecommerce_backend.dto.ProductDTO;
 import in.swarnavo.ecommerce_backend.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -49,5 +50,15 @@ public class CartController {
     ) {
         CartDTO cartDTO = cartService.updateProductQuantityInCart(productId, operation.equalsIgnoreCase("delete") ? -1: 1);
         return new ResponseEntity<>(cartDTO, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/carts/{cartId}/product/{productId}")
+    @PreAuthorize("hasAnyRole('USER','SELLER','ADMIN')")
+    public ResponseEntity<ProductDTO> deleteProductFromCart(
+            @PathVariable Long cartId,
+            @PathVariable Long productId
+    ) {
+        ProductDTO product = cartService.deleteProductFromCart(cartId, productId);
+        return new ResponseEntity<>(product, HttpStatus.OK);
     }
 }

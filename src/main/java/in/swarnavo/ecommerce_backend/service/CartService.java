@@ -1,6 +1,7 @@
 package in.swarnavo.ecommerce_backend.service;
 
 import in.swarnavo.ecommerce_backend.dto.CartDTO;
+import in.swarnavo.ecommerce_backend.dto.ProductDTO;
 
 import java.util.List;
 
@@ -13,5 +14,5 @@ public interface CartService {
 
     CartDTO updateProductQuantityInCart(Long productId, int quantity);
 
-    void deleteProductFromCart(Long cartId, Long productId);
+    ProductDTO deleteProductFromCart(Long cartId, Long productId);
 }
