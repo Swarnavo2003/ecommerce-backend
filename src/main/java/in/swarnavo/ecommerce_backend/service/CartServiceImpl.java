@@ -228,6 +228,32 @@ public class CartServiceImpl implements CartService{
         return productDTO;
     }
 
+    @Override
+    @Transactional
+    public void updateProductInCarts(Long cartId, Long productId) {
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "cartId", cartId));
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
+
+        CartItem cartItem = cartItemRepository.findCartItemByProductIdAndCartId(cartId, productId);
+        if (cartItem == null) {
+            throw new ResourceNotFoundException("Product " + product.getProductName() + " not available in the cart!");
+        }
+
+        double oldPriceContribution = cartItem.getProductPrice() * cartItem.getQuantity();
+
+        cartItem.setProductPrice(product.getSpecialPrice());
+
+        double newPriceContribution = cartItem.getProductPrice() * cartItem.getQuantity();
+
+        cart.setTotalPrice(cart.getTotalPrice() - oldPriceContribution + newPriceContribution);
+
+        cartItemRepository.save(cartItem);
+        cartRepository.save(cart);
+    }
+
     // Map CartItems to ProductDTOs
     private CartDTO mapCartToDTO(Cart cart) {
         CartDTO cartDTO = new CartDTO();

@@ -1,25 +1,27 @@
 package in.swarnavo.ecommerce_backend.service;
 
+import in.swarnavo.ecommerce_backend.dto.CartDTO;
 import in.swarnavo.ecommerce_backend.dto.ProductDTO;
 import in.swarnavo.ecommerce_backend.dto.ProductResponse;
 import in.swarnavo.ecommerce_backend.exception.BaseException;
 import in.swarnavo.ecommerce_backend.exception.DuplicateResourceException;
 import in.swarnavo.ecommerce_backend.exception.ResourceNotFoundException;
+import in.swarnavo.ecommerce_backend.model.Cart;
 import in.swarnavo.ecommerce_backend.model.Category;
 import in.swarnavo.ecommerce_backend.model.Product;
 import in.swarnavo.ecommerce_backend.model.User;
+import in.swarnavo.ecommerce_backend.repository.CartRepository;
 import in.swarnavo.ecommerce_backend.repository.CategoryRepository;
 import in.swarnavo.ecommerce_backend.repository.ProductRepository;
 import in.swarnavo.ecommerce_backend.repository.UserRepository;
 import in.swarnavo.ecommerce_backend.util.AuthUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,7 +34,9 @@ public class ProductServiceImpl implements ProductService{
 
     private final CategoryRepository categoryRepository;
 
-    private final UserRepository userRepository;
+    private final CartRepository cartRepository;
+
+    private final CartService cartService;
 
     private final ModelMapper modelMapper;
 
@@ -153,6 +157,7 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
+    @Transactional
     public ProductDTO updateProduct(Long productId, ProductDTO productDTO) {
         Product product = modelMapper.map(productDTO, Product.class);
 
@@ -175,6 +180,24 @@ public class ProductServiceImpl implements ProductService{
         existingProduct.setSpecialPrice(specialPrice);
 
         Product savedProduct = productRepository.save(existingProduct);
+
+        List<Cart> carts = cartRepository.findCartsByProductId(productId);
+//        List<CartDTO> cartDTOS = carts.stream()
+//                .map(cart -> {
+//                    CartDTO cartDTO = modelMapper.map(cart, CartDTO.class);
+//
+//                    List<ProductDTO> products = cart.getCartItems().stream()
+//                            .map(p -> modelMapper.map(p.getProduct(), ProductDTO.class))
+//                            .toList();
+//
+//                    cartDTO.setProducts(products);
+//
+//                    return cartDTO;
+//                })
+//                .toList();
+
+        carts.forEach(cart -> cartService.updateProductInCarts(cart.getCartId(), productId));
+
         return modelMapper.map(savedProduct, ProductDTO.class);
     }
 
