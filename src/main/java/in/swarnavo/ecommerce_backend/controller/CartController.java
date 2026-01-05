@@ -54,11 +54,11 @@ public class CartController {
 
     @DeleteMapping("/carts/{cartId}/product/{productId}")
     @PreAuthorize("hasAnyRole('USER','SELLER','ADMIN')")
-    public ResponseEntity<ProductDTO> deleteProductFromCart(
+    public ResponseEntity<String> deleteProductFromCart(
             @PathVariable Long cartId,
             @PathVariable Long productId
     ) {
-        ProductDTO product = cartService.deleteProductFromCart(cartId, productId);
-        return new ResponseEntity<>(product, HttpStatus.OK);
+        String response = cartService.deleteProductFromCart(cartId, productId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

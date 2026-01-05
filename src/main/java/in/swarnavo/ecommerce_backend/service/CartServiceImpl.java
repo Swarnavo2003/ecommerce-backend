@@ -198,57 +198,48 @@ public class CartServiceImpl implements CartService{
 
     @Transactional
     @Override
-    public ProductDTO deleteProductFromCart(Long cartId, Long productId) {
-        // STEP 1: Find the cart
+    public String deleteProductFromCart(Long cartId, Long productId) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart", "cartId", cartId));
 
-        // STEP 2: Find the cart item to delete
         CartItem cartItem = cartItemRepository.findCartItemByProductIdAndCartId(cartId, productId);
         if (cartItem == null) {
             throw new ResourceNotFoundException("Product not found in cart");
         }
 
-        Product product = cartItem.getProduct();
-        int deletedQuantity = cartItem.getQuantity();
+        cart.setTotalPrice(cart.getTotalPrice() -
+                (cartItem.getProductPrice() * cartItem.getQuantity()));
 
-        // STEP 3: Calculate price to subtract from cart total
-        double priceToRemove = cartItem.getProductPrice() * cartItem.getQuantity();
-
-        // STEP 4: Update cart total price
-        cart.setTotalPrice(cart.getTotalPrice() - priceToRemove);
-
-        // STEP 5: Delete the cart item
         cartItemRepository.deleteCartItemByProductIdAndCartId(cartId, productId);
 
-        // STEP 6: Save updated cart
-        // cartRepository.save(cart);
-        ProductDTO productDTO = modelMapper.map(product, ProductDTO.class);
-        productDTO.setQuantity(deletedQuantity);
-        return productDTO;
+        return "Product " + cartItem.getProduct().getProductName() + " removed from the cart";
     }
 
     @Override
     @Transactional
     public void updateProductInCarts(Long cartId, Long productId) {
+        // STEP 1: Find the cart
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart", "cartId", cartId));
 
+        // STEP 2: Find the new Updated Product
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
 
+        // STEP 3: Find the cartItem
         CartItem cartItem = cartItemRepository.findCartItemByProductIdAndCartId(cartId, productId);
         if (cartItem == null) {
             throw new ResourceNotFoundException("Product " + product.getProductName() + " not available in the cart!");
         }
 
-        double oldPriceContribution = cartItem.getProductPrice() * cartItem.getQuantity();
+        double cartPrice = cart.getTotalPrice()
+                - (cartItem.getProductPrice() * cartItem.getQuantity());
 
         cartItem.setProductPrice(product.getSpecialPrice());
 
-        double newPriceContribution = cartItem.getProductPrice() * cartItem.getQuantity();
-
-        cart.setTotalPrice(cart.getTotalPrice() - oldPriceContribution + newPriceContribution);
+        cart.setTotalPrice(cartPrice +
+                (cartItem.getProductPrice() * cartItem.getQuantity())
+        );
 
         cartItemRepository.save(cartItem);
         cartRepository.save(cart);
