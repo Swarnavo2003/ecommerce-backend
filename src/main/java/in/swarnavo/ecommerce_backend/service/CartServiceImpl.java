@@ -198,7 +198,7 @@ public class CartServiceImpl implements CartService{
 
     @Transactional
     @Override
-    public String deleteProductFromCart(Long cartId, Long productId) {
+    public ProductDTO deleteProductFromCart(Long cartId, Long productId) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart", "cartId", cartId));
 
@@ -206,6 +206,9 @@ public class CartServiceImpl implements CartService{
         if (cartItem == null) {
             throw new ResourceNotFoundException("Product not found in cart");
         }
+
+        ProductDTO deletedProduct = modelMapper.map(cartItem.getProduct(), ProductDTO.class);
+        deletedProduct.setQuantity(cartItem.getQuantity());
 
         cart.setTotalPrice(cart.getTotalPrice() -
                 (cartItem.getProductPrice() * cartItem.getQuantity()));
@@ -215,7 +218,7 @@ public class CartServiceImpl implements CartService{
 
         cartItemRepository.deleteCartItemByProductIdAndCartId(cartId, productId);
 
-        return "Product " + cartItem.getProduct().getProductName() + " removed from the cart";
+        return deletedProduct;
     }
 
     @Override
