@@ -4,6 +4,8 @@ import in.swarnavo.ecommerce_backend.config.AppConstants;
 import in.swarnavo.ecommerce_backend.dto.CategoryDTO;
 import in.swarnavo.ecommerce_backend.dto.CategoryResponse;
 import in.swarnavo.ecommerce_backend.service.CategoryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,8 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
+    @Tag(name = "Category APIs", description = "APIs for managing categories")
+    @Operation(summary = "Create Category", description = "API to create a new category")
     @PostMapping("/admin/categories")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryDTO> createCategory(@Valid @RequestBody CategoryDTO categoryDTO) {
@@ -27,6 +31,8 @@ public class CategoryController {
         return new ResponseEntity<>(savedCategory, HttpStatus.CREATED);
     }
 
+    @Tag(name = "Category APIs", description = "APIs for managing categories")
+    @Operation(summary = "Fetch Categories", description = "API to fetch all categories")
     @GetMapping("/public/categories")
     public ResponseEntity<CategoryResponse> getAllCategories(
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER) Integer pageNumber,
@@ -37,6 +43,8 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.getAllCategories(pageNumber, pageSize, sortBy, sortOrder));
     }
 
+    @Tag(name = "Category APIs", description = "APIs for managing categories")
+    @Operation(summary = "Delete Category", description = "API to delete a category")
     @DeleteMapping("/admin/categories/{categoryId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryDTO> deleteCategory(@PathVariable Long categoryId) {
@@ -44,6 +52,8 @@ public class CategoryController {
         return new ResponseEntity<>(deleteCategory, HttpStatus.OK);
     }
 
+    @Tag(name = "Category APIs", description = "APIs for managing categories")
+    @Operation(summary = "Update Category", description = "API to update a category")
     @PutMapping("/admin/categories/{categoryId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long categoryId, @Valid @RequestBody CategoryDTO categoryDTO) {
