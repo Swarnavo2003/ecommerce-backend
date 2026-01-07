@@ -251,10 +251,6 @@ Swarnavo Majumder - [@Swarnavo2003](https://github.com/Swarnavo2003) - mswarnavo
 
 Project Link: [https://github.com/Swarnavo2003/ecommerce-backend](https://github.com/Swarnavo2003/ecommerce-backend)
 
-## 📄 License
-
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
 ---
 
 ⭐ Star this repository if you find it helpful!
